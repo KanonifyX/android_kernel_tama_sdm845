@@ -161,7 +161,7 @@ static void otg_hnp_polling_work(struct work_struct *work)
 	flag = *fsm->host_req_flag;
 	if (flag == 0) {
 		/* Continue HNP polling */
-		schedule_delayed_work(&fsm->hnp_polling_work,
+		queue_delayed_work(system_power_efficient_wq, &fsm->hnp_polling_work,
 					msecs_to_jiffies(T_HOST_REQ_POLL));
 		return;
 	} else if (flag != HOST_REQUEST_FLAG) {
@@ -200,8 +200,8 @@ static void otg_start_hnp_polling(struct otg_fsm *fsm)
 		return;
 
 	INIT_DELAYED_WORK(&fsm->hnp_polling_work, otg_hnp_polling_work);
-	schedule_delayed_work(&fsm->hnp_polling_work,
-					msecs_to_jiffies(T_HOST_REQ_POLL));
+	queue_delayed_work(system_power_efficient_wq, &fsm->hnp_polling_work,
+		msecs_to_jiffies(T_HOST_REQ_POLL));
 }
 
 /* Called when entering a state */
