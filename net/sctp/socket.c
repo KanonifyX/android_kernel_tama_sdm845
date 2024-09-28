@@ -7949,7 +7949,7 @@ struct proto sctp_prot = {
 static void sctp_v6_destruct_sock(struct sock *sk)
 {
 	sctp_destruct_common(sk);
-	inet6_sock_destruct(sk);
+	inet6_destroy_sock(sk);
 }
 
 static int sctp_v6_init_sock(struct sock *sk)
