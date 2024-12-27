@@ -58,9 +58,7 @@ static DEFINE_SPINLOCK(suspend_lock);
 
 #define TAG "msm_adreno_tz: "
 
-#if 1
 static unsigned int adrenoboost = 1;
-#endif
 
 static u64 suspend_time;
 static u64 suspend_start;
@@ -92,7 +90,6 @@ u64 suspend_time_ms(void)
 	return time_diff;
 }
 
-#if 1
 static ssize_t adrenoboost_show(struct device *dev,
 		struct device_attribute *attr, char *buf)
 {
@@ -119,7 +116,6 @@ static ssize_t adrenoboost_save(struct device *dev,
 
 	return count;
 }
-#endif
 
 static ssize_t gpu_load_show(struct device *dev,
 		struct device_attribute *attr,
@@ -167,10 +163,8 @@ static ssize_t suspend_time_show(struct device *dev,
 	return snprintf(buf, PAGE_SIZE, "%llu\n", time_diff);
 }
 
-#if 1
 static DEVICE_ATTR(adrenoboost, 0644,
 		adrenoboost_show, adrenoboost_save);
-#endif
 
 static DEVICE_ATTR(gpu_load, 0444, gpu_load_show, NULL);
 
@@ -181,9 +175,7 @@ static DEVICE_ATTR(suspend_time, 0444,
 static const struct device_attribute *adreno_tz_attr_list[] = {
 		&dev_attr_gpu_load,
 		&dev_attr_suspend_time,
-#if 1
 		&dev_attr_adrenoboost,
-#endif
 		NULL
 };
 
@@ -397,26 +389,29 @@ static inline int devfreq_get_freq_level(struct devfreq *devfreq,
 	return -EINVAL;
 }
 
-#if 1
-
-// mapping gpu level calculated linear conservation half curve values into a
-// bell curve of conservation  (lower is higher freq level)
+/* mapping gpu level calculated linear conservation half curve values into a
+ * bell curve of conservation  (lower is higher freq level)
+ */
 static int conservation_map_up[] = {15,15,10,4,5,6,12     ,5,5,5};
 static int conservation_map_down[] = {0,1,6,6,5,0,0     ,5,5,5};
 
-// make boost multiplication/division depending on current lvl, dampen the high freq up scaling! (lower is higher freq level)
+/* make boost multiplication/division depending on current lvl
+ * dampen the high freq up scaling! (lower is higher freq level)
+ */
 static int lvl_multiplicator_map_1[] = {5,5,6,8,9,1,1    ,1,1};
 static int lvl_divider_map_1[] = {10,10,10,10,10,1,1    ,1,1};
 
-// for boost == 2 -- boost divide on the low spectrum, dampen the lower freq values, unneeded to boost the low freq spectrum so much at start
+/* for boost == 2 -- boost divide on the low spectrum
+ * dampen the lower freq values, unneeded to boost the low freq spectrum so much at start
+ */
 static int lvl_multiplicator_map_2[] = {9,1,1,1,1,10,8    ,1,1};
 static int lvl_divider_map_2[] = {10,1,1,1,1,14,12    ,1,1};
 
-// for boost == 3 -- boost divide on the low spectrum, dampen the lower freq values, unneeded to boost the low freq spectrum so much at start
+/* for boost == 3 -- boost divide on the low spectrum
+ * dampen the lower freq values, unneeded to boost the low freq spectrum so much at start
+ */
 static int lvl_multiplicator_map_3[] = {10,1,1,1,1,11,9    ,1,1};
 static int lvl_divider_map_3[] = {10,1,1,1,1,15,13    ,1,1};
-
-#endif
 
 static int tz_get_target_freq(struct devfreq *devfreq, unsigned long *freq)
 {
@@ -426,10 +421,8 @@ static int tz_get_target_freq(struct devfreq *devfreq, unsigned long *freq)
 	int val, level = 0;
 	unsigned int scm_data[4];
 	int context_count = 0;
-#if 1
 	int last_level = priv->bin.last_level;
-//	int max_state_val = devfreq->profile->max_state - 1;
-#endif
+
 	/* keeps stats.private_data == NULL   */
 	result = devfreq->profile->get_dev_status(devfreq->dev.parent, &stats);
 	if (result) {
@@ -439,8 +432,7 @@ static int tz_get_target_freq(struct devfreq *devfreq, unsigned long *freq)
 
 	*freq = stats.current_frequency;
 	priv->bin.total_time += stats.total_time;
-#if 1
-	// scale busy time up based on adrenoboost parameter, only if MIN_BUSY exceeded...
+	/* scale busy time up based on adrenoboost parameter, only if MIN_BUSY exceeded... */
 	if ((unsigned int)(priv->bin.busy_time + stats.busy_time) >= MIN_BUSY && adrenoboost) {
 		if (adrenoboost == 1) {
 			priv->bin.busy_time += (unsigned int)((stats.busy_time * ( 1 + adrenoboost ) * lvl_multiplicator_map_1[ last_level ]) / lvl_divider_map_1[ last_level ]);
@@ -453,9 +445,6 @@ static int tz_get_target_freq(struct devfreq *devfreq, unsigned long *freq)
 	} else {
 		priv->bin.busy_time += stats.busy_time;
 	}
-#else
-	priv->bin.busy_time += stats.busy_time;
-#endif
 
 	if (stats.private_data)
 		context_count =  *((int *)stats.private_data);
@@ -503,7 +492,6 @@ static int tz_get_target_freq(struct devfreq *devfreq, unsigned long *freq)
 	 * If the decision is to move to a different level, make sure the GPU
 	 * frequency changes.
 	 */
-#if 1
 	if (!adrenoboost && val) {
 		level += val;
 		level = max(level, 0);
@@ -528,7 +516,6 @@ static int tz_get_target_freq(struct devfreq *devfreq, unsigned long *freq)
 			}
 		}
 	}
-#endif
 
 	*freq = devfreq->profile->freq_table[level];
 	return 0;
