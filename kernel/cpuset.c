@@ -2037,10 +2037,13 @@ static void uclamp_set(struct kernfs_open_file *of,
 	const char *cs_name = cs->css.cgroup->kn->name;
 
 	static struct ucl_param tgts[] = {
-		{"top-app",    	     	"10", "100", 1, 1},
-		{"foreground", 	     	"0",  "50",  1, 1},
-		{"background", 	     	"20", "100", 0, 0},
-		{"system-background", 	"0",  "40",  0, 0},
+		{"top-app",             "0", "max", 1, 1},
+		{"foreground",          "0", "50",  0, 0},
+		{"background",          "0", "max", 0, 0},
+		{"restricted",          "0", "50",  0, 0},
+		{"audio-app",           "0", "20",  0, 0},
+		{"camera-daemon",       "0", "20",  0, 0},
+		{"system-background",   "0", "50",  0, 0},
 	};
 
 	for (i = 0; i < ARRAY_SIZE(tgts); i++) {
@@ -2062,7 +2065,7 @@ static void uclamp_set(struct kernfs_open_file *of,
 
 	/* Set systemwide uclamps */
 	sysctl_sched_uclamp_util_min = 128;
-	sysctl_sched_uclamp_util_min_rt_default = 500;
+	sysctl_sched_uclamp_util_min_rt_default = 96;
 }
 #endif
 
